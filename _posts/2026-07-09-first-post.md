@@ -3,7 +3,7 @@
 layout: blog
 title: My First Post
 date: 2026-07-09
-----------------
+---
 
 This is the first paragraph of the post.
 
