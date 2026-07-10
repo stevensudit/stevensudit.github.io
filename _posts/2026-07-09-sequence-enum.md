@@ -5,7 +5,7 @@ title: "Giving enum class Back What It Took Away"
 date: 2026-07-09
 ---
 
-When `enum class` landed in C++11, its whole point was subtraction. Classic C enums leaked their enumerators into the enclosing scope, converted to `int` whenever they felt like it, and cheerfully participated in arithmetic that made no sense. Scoped enums fixed all of that by forbidding all of it: no implicit conversions, no operators, no leakage. The committee gave us a type that couldn't misbehave because it couldn't do much of anything.
+When `enum class` landed in C++11, its whole point was subtraction. Classic C enums leaked their enumerators into the enclosing scope, converted to `int` whenever they felt like it, and cheerfully participated in arithmetic that made no sense. Scoped enums fixed all of that by forbidding it all: no implicit conversions, no operators, no leakage. The committee gave us a type that couldn't misbehave because it couldn't do much of anything.
 
 Which is fine, right up until you have a scoped enum whose values are genuinely sequential — days of the week, states in a pipeline, a byte — and you want to write `++day` or `state + 2`. Then you're back to the `static_cast` two-step, littering call sites with casts that are individually harmless and collectively a code smell, because every cast is a place where the type system has been told to look the other way.
 
@@ -59,7 +59,7 @@ The names themselves are handled with a trick I'm rather fond of. The name list 
 "eeny,meany,miny,moe"  →  "eeny\0meany\0miny\0moe\0"
 ```
 
-Each name is now an independently null-terminated span *in place*, so the parsed names are `cstring_view`s — string views that guarantee null termination — pointing directly into that static buffer. No allocation, no copying, no runtime parsing, and every name is safe to hand to a C API. The parse itself runs in `consteval`, so a malformed registration string is a compile error, not a surprise.
+Each name is now an independently null-terminated span *in place*, so the parsed names are the backing for `cstring_view` instances that guarantee null termination, pointing directly into that static buffer. No allocation, no copying, no runtime parsing, and every name is safe to hand to a C API. The parse itself runs in `consteval`, so a malformed registration string is a compile error, not a surprise.
 
 ## Sparse enums: the segment table
 
