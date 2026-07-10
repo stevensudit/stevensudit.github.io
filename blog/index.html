@@ -1,0 +1,41 @@
+---
+title: Blog
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blog — {{ site.title }}</title>
+  <link rel="stylesheet" href="{{ '/style.css' | relative_url }}">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="{{ '/' | relative_url }}">Home</a>
+      <a href="{{ '/blog/' | relative_url }}">Blog</a>
+    </nav>
+  </header>
+
+  <main class="blog-index">
+    <h1>Blog</h1>
+
+    {% for post in site.posts %}
+      <article class="post-summary">
+        <h2>
+          <a href="{{ post.url | relative_url }}">
+            {{ post.title }}
+          </a>
+        </h2>
+
+        <time datetime="{{ post.date | date_to_xmlschema }}">
+          {{ post.date | date: "%B %-d, %Y" }}
+        </time>
+
+        {{ post.excerpt }}
+      </article>
+    {% endfor %}
+  </main>
+</body>
+</html>
