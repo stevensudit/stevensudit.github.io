@@ -3,18 +3,24 @@ layout: default
 title: Blog
 ---
 
-<h1>Blog</h1>
+<section class="blog-index">
+  <h1>Blog</h1>
 
-{% for post in site.posts %}
-  <article class="post-summary">
-    <h2>
-      <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-    </h2>
+  {% if site.posts.size > 0 %}
+    <ul class="post-list">
+      {% for post in site.posts %}
+        <li>
+          <a href="{{ post.url | relative_url }}">
+            {{ post.title }}
+          </a>
 
-    <time datetime="{{ post.date | date_to_xmlschema }}">
-      {{ post.date | date: "%B %-d, %Y" }}
-    </time>
-
-    {{ post.excerpt }}
-  </article>
-{% endfor %}
+          <time datetime="{{ post.date | date_to_xmlschema }}">
+            {{ post.date | date: "%Y-%m-%d" }}
+          </time>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No posts found.</p>
+  {% endif %}
+</section>
