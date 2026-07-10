@@ -1,0 +1,237 @@
+:root {
+  color-scheme: dark;
+
+  --background: #17191f;
+  --surface: #20232b;
+  --surface-hover: #292d37;
+  --text: #e8eaf0;
+  --muted: #a8adba;
+  --border: #373c48;
+  --accent: #9ec1ff;
+  --accent-hover: #c0d6ff;
+  --code-background: #111318;
+
+  --content-width: 48rem;
+  --page-padding: 1.5rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 1rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.15em;
+}
+
+a:hover,
+a:focus-visible {
+  color: var(--accent-hover);
+}
+
+body > header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+nav {
+  display: flex;
+  gap: 1.5rem;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 1rem var(--page-padding);
+}
+
+nav a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+main {
+  width: min(
+    calc(100% - 2 * var(--page-padding)),
+    var(--content-width)
+  );
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+h1 {
+  margin-top: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  font-size: 1.65rem;
+}
+
+h3 {
+  font-size: 1.3rem;
+}
+
+p,
+ul,
+ol,
+blockquote,
+pre {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+ul,
+ol {
+  padding-left: 1.5rem;
+}
+
+li + li {
+  margin-top: 0.35rem;
+}
+
+time {
+  display: block;
+  margin-bottom: 2rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+article {
+  overflow-wrap: break-word;
+}
+
+article header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+blockquote {
+  margin-left: 0;
+  padding-left: 1rem;
+  border-left: 0.25rem solid var(--border);
+  color: var(--muted);
+}
+
+code {
+  padding: 0.1em 0.3em;
+  border-radius: 0.25rem;
+  background: var(--code-background);
+  font-family:
+    "Cascadia Code",
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+  font-size: 0.9em;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--code-background);
+  line-height: 1.5;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  font-size: 0.9rem;
+}
+
+hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.post-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.post-list li:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.post-list li:hover {
+  background: var(--surface-hover);
+}
+
+.post-list a {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.post-list time {
+  margin: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 36rem) {
+  :root {
+    --page-padding: 1rem;
+  }
+
+  main {
+    padding-top: 2rem;
+  }
+
+  nav {
+    gap: 1rem;
+  }
+
+  .post-list li {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}
