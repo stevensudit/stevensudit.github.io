@@ -33,7 +33,7 @@ t += 2;                     // moe
 std::cout << enum_as_view(t);  // prints "moe"
 ```
 
-A few deliberate limitations are worth noticing before we look under the hood. There is no `tiger_pick + tiger_pick`: sequential values are conceptually mutually exclusive options, and adding Tuesday to Thursday is not a Saturday, it's a category error. Only *heterogeneous* arithmetic — enum plus underlying integer — is provided. Conversion back to the underlying type is likewise never implicit; you dereference with `operator*`, borrowing the precedent of `std::optional`:
+A few deliberate limitations are worth noticing before we look under the hood. There is no `tiger_pick + tiger_pick`: conceptually, sequential values are mutually exclusive options, and adding Tuesday to Thursday is not a Saturday, it's a category error. Only *heterogeneous* arithmetic — enum plus underlying integer — is provided. Conversion back to the underlying type is likewise never implicit; you dereference with `operator*`, borrowing the precedent of `std::optional`:
 
 ```cpp
 int n = *t;  // explicit, greppable, honest
