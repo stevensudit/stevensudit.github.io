@@ -9,7 +9,7 @@ When `enum class` landed in C++11, its whole point was subtraction. Classic C en
 
 Which is fine, right up until you have a scoped enum whose values are genuinely sequential — days of the week, states in a pipeline, a byte — and you want to write `++day` or `state + 2`. Then you're back to the `static_cast` two-step, littering call sites with casts that are individually harmless and collectively a code smell, because every cast is a place where the type system has been told to look the other way.
 
-The `sequence_enum` facility in my [Corvid library](https://github.com/stevensudit/Corvid) resolves this tension by giving scoped enums their operators back — but deliberately, per-enum, and only the operators that actually make sense. The irony is intentional: it restores exactly what `enum class` was designed to remove, except this time the compiler is in on it.
+The `sequence_enum` facility in my [Corvid library](https://github.com/stevensudit/Corvid) resolves this tension by giving scoped enums their operators back, but deliberately: per-enum, and only the operators that actually make sense. The irony is intentional: it restores exactly what `enum class` was designed to remove, except this time the compiler is in on it.
 
 ## The two-minute tour
 
@@ -43,7 +43,7 @@ So the design restores capability without restoring the old failure modes. The u
 
 ## Registration without macros
 
-Anyone who has used an enum-reflection library knows the usual trade: either you wrap your enum in a macro that generates the boilerplate, or you use compiler-specific tricks like `__PRETTY_FUNCTION__` parsing to divine the names. Corvid does neither. Registration is a `consteval` function found by argument-dependent lookup:
+Anyone who has used an enum-reflection library knows the usual trade-off: either you wrap your enum in a macro that generates the boilerplate, or you use compiler-specific tricks like `__PRETTY_FUNCTION__` parsing to divine the names. Corvid does neither. Registration is a `consteval` function found by argument-dependent lookup:
 
 ```cpp
 template<ScopedEnum E>
@@ -63,7 +63,7 @@ Each name is now an independently null-terminated span *in place*, so the parsed
 
 ## Sparse enums: the segment table
 
-A dense name list indexed from `minseq` covers most enums, but real-world enums — error codes, protocol constants — often have gaps. Registering `{ ok = 0, warning = 100, fatal = 10'000 }` with a dense list would mean ten thousand empty entries.
+A dense name list indexed from `minseq` covers most enums, but real-world enums, such as error codes and protocol constants, often have gaps. Registering `{ ok = 0, warning = 100, fatal = 10'000 }` with a dense list would mean ten thousand empty entries.
 
 The segmented form breaks the registration into runs:
 
@@ -73,7 +73,7 @@ make_sequence_enum_spec<status, "0,ok|100,warning|10000,fatal">();
 
 Each `|`-delimited segment starts with its absolute value, and storage is sized to the *named count*, not the value range. Lookup by value walks the segment table — a handful of entries — and indexes into the packed array; a dense enum is a single segment, so its lookup is O(1). Lookup by name is a linear scan, which sounds alarming until you remember that enums have dozens of values, not millions, and the scan is `constexpr`-friendly, which matters for what comes next.
 
-One detail here shows the cost model was actually thought through: segments must start at least four values past the end of the previous one, enforced at compile time. Why four? Because a gap of one to three values costs about as much stored as empty names inside one segment as it would as a new segment — which also pays for its start value and delimiter. Runs any closer are rejected with instructions to merge them. It's a small thing, but it's the difference between a facility and a design.
+One detail here shows the cost model was actually thought through: segments must start at least four values past the end of the previous one, enforced at compile time. Why four? Because a gap of one to three values costs about as much stored as empty names inside one segment as it would as a new segment, which also pays for its start value and delimiter. Runs any closer are rejected with instructions to merge them. It's a small thing, but it's the difference between a facility and a design.
 
 ## Wrapping: modular arithmetic that's actually exact
 
@@ -114,9 +114,9 @@ paint("reed");      // compile error: not a registered name
 paint(color::red);  // OK: name looked up from the value
 ```
 
-Read that middle line again. A typo in a string literal is a *build failure*. The mechanism is straightforward once the earlier machinery is in place: the constructor is `consteval`, the lookup is the `constexpr` linear scan from the registry, and a failed lookup throws — which, in a `consteval` context, means the program doesn't compile. The result is also interned: the stored view points at the registry's canonical static copy, not your literal, so equal names share identical storage and can be compared by pointer.
+Read that middle line again. A typo in a string literal is a *build failure*. The mechanism is straightforward once the earlier machinery is in place: the constructor is `consteval`, the lookup is the `constexpr` linear scan from the registry, and a failed lookup throws, which means the program doesn't compile. The result is also interned: the stored view points at the registry's canonical static copy, not your literal, so equal names share identical storage and can be compared by pointer.
 
-Runtime construction is available through checked factories — `intern` throws on unknown names, `try_intern` returns an `optional` — plus an explicit `force` for the caller who accepts a raw, unvalidated view and vouches for its lifetime. (The header notes there is no `try_force`, or `triforce`: only do `force`. I refuse to apologize.) A companion type, `enum_named_value<E>`, carries the resolved enum value alongside the validated name for call sites that need both, resolving the pair in the same `consteval` constructors so neither costs anything at runtime.
+Runtime construction is available through checked factories: `intern` throws on unknown names, `try_intern` returns an `optional`. Because exceptions exist, there's an explicit `force` for the caller who accepts a raw, unvalidated view and vouches for its lifetime. (The header notes there is no `try_force`, or `triforce`: only do `force`. I refuse to apologize.) A companion type, `enum_named_value<E>`, carries the resolved enum value alongside the validated name for call sites that need both, resolving the pair in the same `consteval` constructors so neither costs anything at runtime.
 
 If you want the full literal-suffix experience, the class is designed to support a UDL in two lines:
 
@@ -131,8 +131,8 @@ auto d = "reed"_color;  // compile error
 
 ## Enums done right — for this case
 
-I've been careful to say *sequential* throughout, because that's the honest scope of this facility. Corvid's enum support treats sequences and bitmasks as different animals with different registrations, different valid operations, and different safety semantics — `bitmask_enum.h` is the sibling header, and clipping rather than wrapping is its version of `wrapclip::limit`. A sequence enum is a set of mutually exclusive options; a bitmask is a set of independent flags; and most enum bugs in the wild come from code that never decided which one it had.
+I've been careful to say *sequential* throughout, because that's the honest scope of this facility. Corvid's enum support treats sequences and bitmasks as different animals with different registrations, different valid operations, and different safety semantics. `bitmask_enum.h` is the sibling header, and clipping rather than wrapping is its version of `wrapclip::limit`. A sequence enum is a set of mutually exclusive options; a bitmask is a set of independent flags; and enum bugs in the wild often come from code that never decided which one it had.
 
-That, ultimately, is the claim behind "enums done right." Not that scoped enums were a mistake — they weren't — but that forbidding everything was a blunt instrument, and the type system of 2026 is sharp enough for a finer one. With concepts to gate the operators, `consteval` to move validation to the build, ADL to make registration non-invasive, and NTTP strings to make the names free, a scoped enum can finally say what it is and get exactly the operations that follow — no casts, no macros, and no way to spell the bugs the old enums invited.
+That, ultimately, is the claim behind "enums done right." Not that scoped enums were a mistake — they weren't — but that forbidding everything was a blunt instrument, and the type system of 2026 is sharp enough for a finer one. With concepts to gate the operators, `consteval` to move validation to the build, ADL to make registration non-invasive, and NTTP strings to make the names free, a scoped enum can finally say what it is and get exactly the operations that follow: no casts, no macros, and no way to spell the bugs the old enums invited.
 
 The code is Apache-2.0 and lives in [`corvid/enums/sequence_enum.h`](https://github.com/stevensudit/Corvid/blob/main/corvid/enums/sequence_enum.h), with the registry plumbing in [`enum_registry.h`](https://github.com/stevensudit/Corvid/blob/main/corvid/enums/enum_registry.h) and [`scoped_enum.h`](https://github.com/stevensudit/Corvid/blob/main/corvid/enums/scoped_enum.h).
